@@ -112,6 +112,36 @@ header{
   transition:.3s;
 }
 
+.timer-wrap{
+  margin-top:12px;
+  display:none;
+  align-items:center;
+  gap:12px;
+}
+.timer-wrap.show{display:flex}
+.timer-text{
+  min-width:48px;
+  color:var(--cyan);
+  font-weight:900;
+  font-size:14px;
+  text-align:right;
+}
+.timer-track{
+  flex:1;
+  height:7px;
+  background:#22304a;
+  border-radius:20px;
+  overflow:hidden;
+}
+.timer-fill{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  transition:width .1s linear,background .2s;
+}
+.timer-wrap.danger .timer-text{color:var(--red)}
+.timer-wrap.danger .timer-fill{background:var(--red)}
+
 .game-area{
   position:relative;
   overflow:hidden;
@@ -432,6 +462,11 @@ STREAK
 <div id="roundProgress"></div>
 </div>
 
+<div class="timer-wrap" id="timerWrap">
+  <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+  <div class="timer-text" id="timerText">--</div>
+</div>
+
 <div class="game-area" id="gameArea">
 
 <div class="center">
@@ -520,7 +555,12 @@ const gamePool=[
   "reverseMemory",
   "attention",
   "oddPattern",
-  "processingSpeed"
+  "processingSpeed",
+  "alternatingPattern",
+  "numberRule",
+  "symbolMath",
+  "quickSort",
+  "workingMemory"
 ];
 
 let round=0;
@@ -547,6 +587,10 @@ let selectedCells=[];
 let reverseValue="";
 let correctAnswer=null;
 let timerStart=0;
+let roundTimer=null;
+let roundTimerEnd=0;
+let roundTimerDuration=0;
+let timerSkill=null;
 
 
 function startSession(){
@@ -688,7 +732,37 @@ oddPattern:{
 processingSpeed:{
   title:"Processing Speed",
   skill:"Speed",
-  text:"Answer a very simple comparison as quickly as possible. Faster correct answers earn more points."
+  text:"Answer a comparison as quickly as possible. Faster correct answers earn more points."
+},
+
+alternatingPattern:{
+  title:"Alternating Pattern",
+  skill:"Logic",
+  text:"Two patterns are interwoven. Track the odd and even positions separately and find the next value."
+},
+
+numberRule:{
+  title:"Number Rule",
+  skill:"Logic",
+  text:"Find the hidden relationship between the numbers and choose the missing result."
+},
+
+symbolMath:{
+  title:"Symbol Math",
+  skill:"Math",
+  text:"Work out the value of each symbol, then solve the final expression."
+},
+
+quickSort:{
+  title:"Quick Order",
+  skill:"Speed",
+  text:"Choose the option whose numbers are already ordered from smallest to largest."
+},
+
+workingMemory:{
+  title:"Working Memory",
+  skill:"Memory",
+  text:"Remember the digits, then answer a question about specific positions instead of repeating the whole sequence."
 }
 
 };
@@ -781,6 +855,11 @@ if(game==="reverseMemory") startReverseMemory();
 if(game==="attention") startAttention();
 if(game==="oddPattern") startOddPattern();
 if(game==="processingSpeed") startProcessingSpeed();
+if(game==="alternatingPattern") startAlternatingPattern();
+if(game==="numberRule") startNumberRule();
+if(game==="symbolMath") startSymbolMath();
+if(game==="quickSort") startQuickSort();
+if(game==="workingMemory") startWorkingMemory();
 
 }
 
@@ -789,6 +868,7 @@ function winRound(points,skill,message){
 
 if(!active) return;
 
+stopRoundTimer();
 active=false;
 
 totalScore+=points;
@@ -809,6 +889,7 @@ function failRound(skill,message){
 
 if(!active) return;
 
+stopRoundTimer();
 active=false;
 streak=0;
 
@@ -906,12 +987,13 @@ autocomplete="off">
 const input=document.getElementById("memoryInput");
 
 input.focus();
+startRoundTimer(12,"memory");
 
 input.onkeydown=(e)=>{
 
 if(e.key==="Enter"){
 
-const answer=input.value.replace(/\s/g,"");
+const answer=normalizeDigits(input.value);
 
 const correct=memorySequence.join("");
 
@@ -958,6 +1040,7 @@ while(ink.name===word.name){
 correctAnswer=ink.name;
 
 active=true;
+startRoundTimer(9,"attention");
 
 document.getElementById("gameArea").innerHTML=`
 
@@ -1060,6 +1143,7 @@ next=start+20;
 }
 
 correctAnswer=next;
+startRoundTimer(16,"logic");
 
 let answers=[
 next,
@@ -1167,6 +1251,7 @@ onclick="selectVisual(${i})">
 html2+="</div>";
 
 document.getElementById("gameArea").innerHTML=html2;
+startRoundTimer(14,"memory");
 
 },1800);
 
@@ -1208,6 +1293,7 @@ function startLogic(){
 document.getElementById("gameTitle").innerText="Logic Comparison";
 
 active=true;
+startRoundTimer(14,"logic");
 
 const names=["A","B","C"];
 
@@ -1285,6 +1371,7 @@ function startMentalMath(){
 document.getElementById("gameTitle").innerText="Mental Math";
 
 active=true;
+startRoundTimer(15,"math");
 
 let a=Math.floor(Math.random()*20)+5;
 let b=Math.floor(Math.random()*12)+2;
@@ -1348,7 +1435,7 @@ document.getElementById("gameTitle").innerText="Reverse Memory";
 
 let arr=[];
 
-for(let i=0;i<5;i++){
+for(let i=0;i<6;i++){
   arr.push(Math.floor(Math.random()*10));
 }
 
@@ -1394,12 +1481,13 @@ autocomplete="off">
 const input=document.getElementById("reverseInput");
 
 input.focus();
+startRoundTimer(13,"memory");
 
 input.onkeydown=(e)=>{
 
 if(e.key==="Enter"){
 
-const value=input.value.replace(/\s/g,"");
+const value=normalizeDigits(input.value);
 
 if(value===reverseValue){
   winRound(145,"memory","Reverse memory correct");
@@ -1434,7 +1522,7 @@ symbols[Math.floor(Math.random()*symbols.length)];
 let items=[];
 let count=0;
 
-for(let i=0;i<30;i++){
+for(let i=0;i<36;i++){
 
 const s=symbols[Math.floor(Math.random()*symbols.length)];
 
@@ -1445,6 +1533,7 @@ if(s===target) count++;
 }
 
 correctAnswer=count;
+startRoundTimer(18,"attention");
 
 document.getElementById("gameArea").innerHTML=`
 
@@ -1508,6 +1597,7 @@ function startOddPattern(){
 document.getElementById("gameTitle").innerText="Odd Pattern";
 
 active=true;
+startRoundTimer(13,"logic");
 
 const sets=[
   ["2","4","6","9"],
@@ -1578,6 +1668,7 @@ correctAnswer=
 a>b ? "LEFT":"RIGHT";
 
 timerStart=performance.now();
+startRoundTimer(7,"speed");
 
 document.getElementById("gameArea").innerHTML=`
 
@@ -1626,6 +1717,280 @@ failRound("speed","Incorrect comparison");
 
 }
 
+}
+
+
+
+/* =========================
+ROUND TIMER
+========================= */
+
+function startRoundTimer(seconds,skill){
+
+  stopRoundTimer(false);
+
+  timerSkill=skill;
+  roundTimerDuration=seconds*1000;
+  roundTimerEnd=performance.now()+roundTimerDuration;
+
+  const wrap=document.getElementById("timerWrap");
+  wrap.classList.add("show");
+  wrap.classList.remove("danger");
+
+  function tick(){
+    const left=Math.max(0,roundTimerEnd-performance.now());
+    const sec=Math.ceil(left/1000);
+    const pct=(left/roundTimerDuration)*100;
+
+    document.getElementById("timerText").innerText=sec+"s";
+    document.getElementById("timerFill").style.width=pct+"%";
+
+    if(left<=5000) wrap.classList.add("danger");
+
+    if(left<=0){
+      stopRoundTimer();
+      if(active) failRound(skill,"Time's up");
+    }
+  }
+
+  tick();
+  roundTimer=setInterval(tick,100);
+}
+
+function stopRoundTimer(hide=true){
+  if(roundTimer){
+    clearInterval(roundTimer);
+    roundTimer=null;
+  }
+  const wrap=document.getElementById("timerWrap");
+  if(wrap && hide){
+    wrap.classList.remove("show","danger");
+  }
+}
+
+function normalizeDigits(value){
+  return String(value)
+    .trim()
+    .replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[^\d]/g,"");
+}
+
+
+/* =========================
+ALTERNATING PATTERN
+========================= */
+
+function startAlternatingPattern(){
+  document.getElementById("gameTitle").innerText="Alternating Pattern";
+  active=true;
+
+  const a=Math.floor(Math.random()*4)+2;
+  const b=Math.floor(Math.random()*4)+10;
+  const seq=[a,b,a+3,b+4,a+6,b+8,a+9];
+  correctAnswer=b+12;
+
+  const answers=shuffle([
+    correctAnswer,
+    correctAnswer+4,
+    correctAnswer-3,
+    correctAnswer+6
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <p class="muted">Two sequences are mixed together.</p>
+    <div class="sequence">${seq.join("  ")}  ?</div>
+    <br><br>
+    <div class="answer-grid" style="margin:auto">
+      ${answers.map(x=>`<div class="answer" onclick="alternatingAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(18,"logic");
+}
+
+function alternatingAnswer(v){
+  if(v===correctAnswer) winRound(145,"logic","Interwoven pattern solved");
+  else failRound("logic","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+NUMBER RULE
+========================= */
+
+function startNumberRule(){
+  document.getElementById("gameTitle").innerText="Number Rule";
+  active=true;
+
+  const a=Math.floor(Math.random()*5)+3;
+  const b=Math.floor(Math.random()*5)+2;
+  correctAnswer=a*b+a;
+
+  const answers=shuffle([
+    correctAnswer,
+    a*b,
+    correctAnswer+b,
+    correctAnswer-a
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="logic-box" style="margin:auto">
+      <div class="logic-line">2 , 3 → 8</div>
+      <div class="logic-line">4 , 2 → 12</div>
+      <div class="logic-line">${a} , ${b} → ?</div>
+    </div>
+    <p class="muted">Same rule every time.</p>
+    <div class="answer-grid" style="margin:20px auto 0">
+      ${answers.map(x=>`<div class="answer" onclick="numberRuleAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(20,"logic");
+}
+
+function numberRuleAnswer(v){
+  if(v===correctAnswer) winRound(150,"logic","Hidden rule discovered");
+  else failRound("logic","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+SYMBOL MATH
+========================= */
+
+function startSymbolMath(){
+  document.getElementById("gameTitle").innerText="Symbol Math";
+  active=true;
+
+  const star=Math.floor(Math.random()*5)+3;
+  const circle=Math.floor(Math.random()*4)+2;
+  correctAnswer=star*2+circle;
+
+  const answers=shuffle([
+    correctAnswer,
+    correctAnswer+2,
+    correctAnswer-1,
+    correctAnswer+circle
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="logic-box" style="margin:auto">
+      <div class="logic-line">★ + ★ = ${star*2}</div>
+      <div class="logic-line">● + ● + ● = ${circle*3}</div>
+      <hr style="border-color:#2a3858">
+      <div class="logic-line">★ × 2 + ● = ?</div>
+    </div>
+    <br>
+    <div class="answer-grid" style="margin:auto">
+      ${answers.map(x=>`<div class="answer" onclick="symbolMathAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(18,"math");
+}
+
+function symbolMathAnswer(v){
+  if(v===correctAnswer) winRound(145,"math","Symbol values solved");
+  else failRound("math","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+QUICK ORDER
+========================= */
+
+function startQuickSort(){
+  document.getElementById("gameTitle").innerText="Quick Order";
+  active=true;
+
+  let base=[];
+  while(base.length<4){
+    const n=Math.floor(Math.random()*80)+10;
+    if(!base.includes(n)) base.push(n);
+  }
+
+  const correct=[...base].sort((a,b)=>a-b);
+  const options=[correct];
+
+  while(options.length<4){
+    const candidate=shuffle([...base]);
+    if(!options.some(o=>o.join(",")===candidate.join(","))){
+      options.push(candidate);
+    }
+  }
+
+  shuffle(options);
+  correctAnswer=correct.join(",");
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <h2>Which row is smallest → largest?</h2>
+    <div class="answer-grid" style="margin:auto">
+      ${options.map(o=>`<div class="answer" onclick="quickSortAnswer('${o.join(",")}')">${o.join("  ")}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(10,"speed");
+}
+
+function quickSortAnswer(v){
+  if(v===correctAnswer) winRound(140,"speed","Fast ordering");
+  else failRound("speed","Wrong order");
+}
+
+
+/* =========================
+WORKING MEMORY
+========================= */
+
+function startWorkingMemory(){
+  document.getElementById("gameTitle").innerText="Working Memory";
+
+  const arr=[];
+  for(let i=0;i<7;i++) arr.push(Math.floor(Math.random()*10));
+
+  const p1=Math.floor(Math.random()*3)+1;
+  let p2=Math.floor(Math.random()*3)+5;
+  correctAnswer=arr[p1-1]+arr[p2-1];
+
+  active=false;
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center">
+    <div class="sequence">${arr.join(" ")}</div>
+    <p class="muted">Remember all seven digits.</p>
+  </div>`;
+
+  setTimeout(()=>{
+    active=true;
+
+    const answers=shuffle([
+      correctAnswer,
+      correctAnswer+1,
+      Math.max(0,correctAnswer-2),
+      correctAnswer+3
+    ]);
+
+    document.getElementById("gameArea").innerHTML=`
+    <div class="center" style="width:100%">
+      <h2>Add digit #${p1} and digit #${p2}</h2>
+      <p class="muted">Positions count from the left.</p>
+      <div class="answer-grid" style="margin:20px auto">
+        ${answers.map(x=>`<div class="answer" onclick="workingMemoryAnswer(${x})">${x}</div>`).join("")}
+      </div>
+    </div>`;
+
+    startRoundTimer(14,"memory");
+  },2600);
+}
+
+function workingMemoryAnswer(v){
+  if(v===correctAnswer) winRound(150,"memory","Working memory complete");
+  else failRound("memory","Answer was "+correctAnswer);
 }
 
 
@@ -1715,6 +2080,8 @@ document.getElementById("summaryText").innerText=
 
 
 function cleanup(){
+
+stopRoundTimer();
 
 if(introListener){
   document.removeEventListener("keydown",introListener);
