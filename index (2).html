@@ -1,0 +1,2569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Rush</title>
+
+<style>
+:root{
+  --bg:#090d18;
+  --panel:#12192a;
+  --panel2:#182238;
+  --border:#2a3858;
+  --text:#ffffff;
+  --muted:#93a0bd;
+  --cyan:#27d7ff;
+  --blue:#568cff;
+  --green:#39df88;
+  --red:#ff6075;
+  --yellow:#ffd54a;
+  --purple:#a98cff;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:Inter,Segoe UI,Arial,sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%,rgba(86,140,255,.14),transparent 30%),
+    radial-gradient(circle at 90% 5%,rgba(39,215,255,.08),transparent 30%),
+    var(--bg);
+  color:var(--text);
+}
+
+header{
+  height:72px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 5%;
+  border-bottom:1px solid var(--border);
+  background:rgba(9,13,24,.92);
+  backdrop-filter:blur(14px);
+}
+
+.logo{
+  font-size:22px;
+  font-weight:900;
+}
+
+.logo span{color:var(--cyan)}
+
+.topstats{
+  display:flex;
+  gap:28px;
+}
+
+.stat{
+  text-align:center;
+  font-size:11px;
+  color:var(--muted);
+}
+
+.stat b{
+  display:block;
+  color:white;
+  font-size:19px;
+}
+
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:38px 24px 70px;
+}
+
+.main-card{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 25px 70px rgba(0,0,0,.25);
+}
+
+.round-top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+}
+
+.round-label{
+  color:var(--cyan);
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:1.4px;
+}
+
+.progress{
+  height:8px;
+  background:#22304a;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:16px;
+}
+
+.progress div{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+  transition:.3s;
+}
+
+.timer-wrap{
+  margin-top:12px;
+  display:none;
+  align-items:center;
+  gap:12px;
+}
+.timer-wrap.show{display:flex}
+.timer-text{
+  min-width:48px;
+  color:var(--cyan);
+  font-weight:900;
+  font-size:14px;
+  text-align:right;
+}
+.timer-track{
+  flex:1;
+  height:7px;
+  background:#22304a;
+  border-radius:20px;
+  overflow:hidden;
+}
+.timer-fill{
+  height:100%;
+  width:100%;
+  background:linear-gradient(90deg,var(--green),var(--cyan));
+  transition:width .1s linear,background .2s;
+}
+.timer-wrap.danger .timer-text{color:var(--red)}
+.timer-wrap.danger .timer-fill{background:var(--red)}
+
+.game-area{
+  position:relative;
+  overflow:hidden;
+  margin-top:22px;
+  min-height:440px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:#0c1425;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+}
+
+.center{
+  text-align:center;
+}
+
+.big{
+  font-size:58px;
+  font-weight:900;
+}
+
+.muted{color:var(--muted)}
+
+button{
+  border:0;
+  border-radius:10px;
+  padding:12px 18px;
+  font-weight:800;
+  font-size:14px;
+  cursor:pointer;
+}
+
+.primary{
+  background:linear-gradient(135deg,var(--blue),var(--cyan));
+  color:#03101d;
+}
+
+.secondary{
+  background:var(--panel2);
+  color:white;
+  border:1px solid var(--border);
+}
+
+.danger{
+  background:var(--red);
+  color:white;
+}
+
+.intro-overlay{
+  position:absolute;
+  inset:0;
+  z-index:10;
+  background:
+    radial-gradient(circle at center,rgba(86,140,255,.12),transparent 42%),
+    #0a1222;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:35px;
+  text-align:center;
+}
+
+.intro-title{
+  font-size:40px;
+  font-weight:900;
+  margin:10px 0;
+}
+
+.intro-text{
+  max-width:590px;
+  color:var(--muted);
+  font-size:17px;
+  line-height:1.7;
+}
+
+.press{
+  margin-top:25px;
+  color:var(--cyan);
+  font-weight:900;
+  letter-spacing:1.5px;
+}
+
+.feedback{
+  position:absolute;
+  inset:0;
+  z-index:12;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  background:rgba(6,12,22,.92);
+  text-align:center;
+}
+
+.feedback.show{display:flex}
+
+.number-grid,
+.answer-grid{
+  width:100%;
+  max-width:520px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.answer{
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:22px;
+  font-size:24px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.answer:hover{
+  border-color:var(--cyan);
+  transform:translateY(-2px);
+}
+
+.input-box{
+  width:100%;
+  max-width:430px;
+  background:#0f1a2e;
+  color:white;
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:14px;
+  outline:none;
+  text-align:center;
+  font-size:20px;
+}
+
+.sequence{
+  font-size:44px;
+  font-weight:900;
+  letter-spacing:8px;
+}
+
+.memory-grid{
+  display:grid;
+  grid-template-columns:repeat(4,80px);
+  gap:10px;
+}
+
+.memory-cell{
+  width:80px;
+  height:80px;
+  border-radius:10px;
+  background:#263654;
+  border:1px solid #39527f;
+  cursor:pointer;
+}
+
+.memory-cell.active{
+  background:var(--yellow);
+  box-shadow:0 0 26px rgba(255,213,74,.42);
+}
+
+.memory-cell.selected{
+  outline:3px solid var(--cyan);
+}
+
+.stroop-word{
+  font-size:72px;
+  font-weight:900;
+  letter-spacing:2px;
+}
+
+.logic-box{
+  max-width:600px;
+  background:var(--panel2);
+  border:1px solid var(--border);
+  border-radius:15px;
+  padding:28px;
+}
+
+.logic-line{
+  font-size:28px;
+  margin:10px 0;
+}
+
+.attention-grid{
+  display:grid;
+  grid-template-columns:repeat(6,48px);
+  gap:9px;
+}
+
+.attention-cell{
+  width:48px;
+  height:48px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:23px;
+  background:#17233b;
+  border:1px solid #2a3a5d;
+}
+
+.reverse-display{
+  font-size:46px;
+  font-weight:900;
+  letter-spacing:10px;
+}
+
+.final{
+  display:none;
+  text-align:center;
+  padding:25px;
+}
+
+.final.show{display:block}
+
+.final-score{
+  font-size:84px;
+  font-weight:900;
+  color:var(--cyan);
+}
+
+.grade{
+  font-size:28px;
+  font-weight:900;
+  color:var(--green);
+}
+
+.final-grid{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin:25px 0;
+}
+
+.skill{
+  background:#131f35;
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+}
+
+.skill b{
+  display:block;
+  font-size:26px;
+  margin-top:5px;
+}
+
+.skillbar{
+  height:7px;
+  background:#24314d;
+  border-radius:20px;
+  overflow:hidden;
+  margin-top:10px;
+}
+
+.skillbar div{
+  height:100%;
+  background:linear-gradient(90deg,var(--blue),var(--cyan));
+}
+
+@media(max-width:800px){
+  .final-grid{grid-template-columns:1fr 1fr}
+  .memory-grid{grid-template-columns:repeat(4,65px)}
+  .memory-cell{width:65px;height:65px}
+  .attention-grid{grid-template-columns:repeat(5,44px)}
+  .attention-cell{width:44px;height:44px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">
+<span>◆</span> Brain Rush
+</div>
+
+<div class="topstats">
+
+<div class="stat">
+<b id="roundDisplay">0/10</b>
+ROUND
+</div>
+
+<div class="stat">
+<b id="scoreDisplay">0</b>
+SCORE
+</div>
+
+<div class="stat">
+<b id="streakDisplay">0</b>
+STREAK
+</div>
+
+</div>
+
+</header>
+
+<div class="container">
+
+<div class="main-card">
+
+<div class="round-top">
+
+<div>
+<div class="round-label">BRAIN TRAINING SESSION</div>
+<h2 id="gameTitle">Ready?</h2>
+</div>
+
+<div class="muted" id="gameType">
+10 cognitive rounds
+</div>
+
+</div>
+
+<div class="progress">
+<div id="roundProgress"></div>
+</div>
+
+<div class="timer-wrap" id="timerWrap">
+  <div class="timer-track"><div class="timer-fill" id="timerFill"></div></div>
+  <div class="timer-text" id="timerText">--</div>
+</div>
+
+<div class="game-area" id="gameArea">
+
+<div class="center">
+
+<div class="big">🧠</div>
+
+<h2>Brain Rush</h2>
+
+<p class="muted">
+10 rounds testing memory, logic, attention, math and processing speed.
+<br>Difficulty ramps up from easy to hard as you progress.
+</p>
+
+<button class="primary" onclick="startSession()">
+START SESSION
+</button>
+
+</div>
+
+</div>
+
+<div class="final" id="finalScreen">
+
+<div class="muted">BRAIN REPORT</div>
+
+<div class="final-score" id="finalScore">0</div>
+
+<div class="grade" id="finalGrade"></div>
+
+<div class="final-grid">
+
+<div class="skill">
+Memory
+<b id="memoryScore">0</b>
+<div class="skillbar"><div id="memoryBar"></div></div>
+</div>
+
+<div class="skill">
+Logic
+<b id="logicScore">0</b>
+<div class="skillbar"><div id="logicBar"></div></div>
+</div>
+
+<div class="skill">
+Attention
+<b id="attentionScore">0</b>
+<div class="skillbar"><div id="attentionBar"></div></div>
+</div>
+
+<div class="skill">
+Math
+<b id="mathScore">0</b>
+<div class="skillbar"><div id="mathBar"></div></div>
+</div>
+
+<div class="skill">
+Speed
+<b id="speedScore">0</b>
+<div class="skillbar"><div id="speedBar"></div></div>
+</div>
+
+</div>
+
+<p id="summaryText" class="muted"></p>
+
+<button class="primary" onclick="startSession()">
+PLAY AGAIN
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+const TOTAL_ROUNDS=10;
+
+const gamePool=[
+  "sequenceMemory",
+  "stroop",
+  "missingNumber",
+  "visualMemory",
+  "logic",
+  "mentalMath",
+  "reverseMemory",
+  "attention",
+  "oddPattern",
+  "processingSpeed",
+  "alternatingPattern",
+  "numberRule",
+  "symbolMath",
+  "quickSort",
+  "workingMemory",
+  "wordRecall",
+  "changeSpot",
+  "analogy",
+  "percentEstimate",
+  "reactionTap"
+];
+
+let round=0;
+let totalScore=0;
+let streak=0;
+let bestStreak=0;
+let sessionGames=[];
+
+let active=false;
+let currentGame=null;
+let currentDifficulty="medium";
+let introListener=null;
+
+let skillScores={
+  memory:{earned:0,max:0},
+  logic:{earned:0,max:0},
+  attention:{earned:0,max:0},
+  math:{earned:0,max:0},
+  speed:{earned:0,max:0}
+};
+
+let memorySequence=[];
+let visualTargets=[];
+let selectedCells=[];
+let reverseValue="";
+let correctAnswer=null;
+let timerStart=0;
+let roundTimer=null;
+let roundTimerEnd=0;
+let roundTimerDuration=0;
+let timerSkill=null;
+let wordListShown=[];
+let reactionTimeout=null;
+
+const DIFF_MULT={easy:0.8,medium:1,hard:1.3};
+const DIFF_LABEL={easy:"EASY",medium:"MEDIUM",hard:"HARD"};
+const DIFF_COLOR={easy:"var(--green)",medium:"var(--yellow)",hard:"var(--red)"};
+
+function scalePoints(base){
+  return Math.round(base*DIFF_MULT[currentDifficulty]);
+}
+
+function getDifficultyForRound(r){
+  const third=Math.ceil(TOTAL_ROUNDS/3);
+  if(r<=third) return "easy";
+  if(r<=third*2) return "medium";
+  return "hard";
+}
+
+const WORD_BANK=["APPLE","RIVER","CHAIR","PLANET","GUITAR","CANDLE","BRIDGE","WINDOW","PENCIL","OCEAN","TIGER","GARDEN","MIRROR","ROCKET","VALLEY","CASTLE","DESERT","HARBOR","MELODY","SPARROW","THUNDER","CRYSTAL","JOURNEY","WHISPER","MOUNTAIN","LANTERN","VELVET","GLACIER","FALCON","EMBER"];
+
+const ANALOGIES=[
+  {a:"Hot",b:"Cold",c:"Up",options:["Down","Left","Fast","Big"],answer:"Down"},
+  {a:"Dog",b:"Puppy",c:"Cat",options:["Kitten","Cub","Foal","Calf"],answer:"Kitten"},
+  {a:"Book",b:"Read",c:"Song",options:["Listen","Write","Draw","Cook"],answer:"Listen"},
+  {a:"Doctor",b:"Hospital",c:"Teacher",options:["School","Farm","Kitchen","Bank"],answer:"School"},
+  {a:"Sun",b:"Day",c:"Moon",options:["Night","Star","Sky","Cloud"],answer:"Night"},
+  {a:"Bird",b:"Fly",c:"Fish",options:["Swim","Walk","Jump","Crawl"],answer:"Swim"},
+  {a:"Big",b:"Small",c:"Fast",options:["Slow","Loud","Heavy","Light"],answer:"Slow"},
+  {a:"King",b:"Queen",c:"Man",options:["Woman","Boy","Prince","Child"],answer:"Woman"},
+  {a:"Pen",b:"Write",c:"Knife",options:["Cut","Draw","Sew","Dig"],answer:"Cut"},
+  {a:"Water",b:"Ice",c:"Milk",options:["Cheese","Bread","Juice","Sugar"],answer:"Cheese"}
+];
+
+
+function startSession(){
+
+cleanup();
+
+round=0;
+totalScore=0;
+streak=0;
+bestStreak=0;
+
+skillScores={
+  memory:{earned:0,max:0},
+  logic:{earned:0,max:0},
+  attention:{earned:0,max:0},
+  math:{earned:0,max:0},
+  speed:{earned:0,max:0}
+};
+
+sessionGames=buildSessionGames();
+
+document.getElementById("finalScreen").classList.remove("show");
+document.getElementById("gameArea").style.display="flex";
+
+updateTop();
+
+setTimeout(nextRound,300);
+
+}
+
+
+function buildSessionGames(){
+
+const bySkill={memory:[],logic:[],attention:[],math:[],speed:[]};
+
+gamePool.forEach(g=>{
+  const skill=gameInfo(g).skill.toLowerCase();
+  bySkill[skill].push(g);
+});
+
+let guaranteed=[];
+
+Object.keys(bySkill).forEach(skill=>{
+  const options=shuffle([...bySkill[skill]]);
+  guaranteed.push(options[0]);
+});
+
+const remaining=gamePool.filter(g=>!guaranteed.includes(g));
+const extra=shuffle(remaining).slice(0,TOTAL_ROUNDS-guaranteed.length);
+
+return shuffle([...guaranteed,...extra]);
+
+}
+
+
+function shuffle(arr){
+
+for(let i=arr.length-1;i>0;i--){
+  const j=Math.floor(Math.random()*(i+1));
+  [arr[i],arr[j]]=[arr[j],arr[i]];
+}
+
+return arr;
+
+}
+
+
+function nextRound(){
+
+cleanup();
+
+if(round>=TOTAL_ROUNDS){
+  endSession();
+  return;
+}
+
+currentGame=sessionGames[round];
+
+round++;
+currentDifficulty=getDifficultyForRound(round);
+
+updateTop();
+
+showIntro(currentGame);
+
+}
+
+
+function updateTop(){
+
+document.getElementById("roundDisplay").innerText=
+round+"/"+TOTAL_ROUNDS;
+
+document.getElementById("scoreDisplay").innerText=
+totalScore;
+
+document.getElementById("streakDisplay").innerText=
+streak;
+
+document.getElementById("roundProgress").style.width=
+(round/TOTAL_ROUNDS*100)+"%";
+
+}
+
+
+function gameInfo(game){
+
+const info={
+
+sequenceMemory:{
+  title:"Sequence Memory",
+  skill:"Memory",
+  text:"A sequence of digits will appear briefly. Remember it and type it exactly in the same order."
+},
+
+stroop:{
+  title:"Stroop Challenge",
+  skill:"Attention",
+  text:"A color word will appear in a different ink color. Ignore the word itself and choose the actual ink color."
+},
+
+missingNumber:{
+  title:"Pattern Logic",
+  skill:"Logic",
+  text:"Study the number sequence and choose the number that logically comes next."
+},
+
+visualMemory:{
+  title:"Visual Memory",
+  skill:"Memory",
+  text:"Several squares will light up. Remember their locations and select the same squares after they disappear."
+},
+
+logic:{
+  title:"Logic Comparison",
+  skill:"Logic",
+  text:"Read the relationships carefully, then decide whether the final statement is true or false."
+},
+
+mentalMath:{
+  title:"Mental Math",
+  skill:"Math",
+  text:"Solve the calculation mentally and choose the correct answer."
+},
+
+reverseMemory:{
+  title:"Reverse Memory",
+  skill:"Memory",
+  text:"Remember the digit sequence, then enter the same sequence backwards."
+},
+
+attention:{
+  title:"Selective Attention",
+  skill:"Attention",
+  text:"Count only the target symbol among many distractors. Do not count the other symbols."
+},
+
+oddPattern:{
+  title:"Odd Pattern",
+  skill:"Logic",
+  text:"Choose the item that does not follow the same pattern as the others."
+},
+
+processingSpeed:{
+  title:"Processing Speed",
+  skill:"Speed",
+  text:"Answer a comparison as quickly as possible. Faster correct answers earn more points."
+},
+
+alternatingPattern:{
+  title:"Alternating Pattern",
+  skill:"Logic",
+  text:"Two patterns are interwoven. Track the odd and even positions separately and find the next value."
+},
+
+numberRule:{
+  title:"Number Rule",
+  skill:"Logic",
+  text:"Find the hidden relationship between the numbers and choose the missing result."
+},
+
+symbolMath:{
+  title:"Symbol Math",
+  skill:"Math",
+  text:"Work out the value of each symbol, then solve the final expression."
+},
+
+quickSort:{
+  title:"Quick Order",
+  skill:"Speed",
+  text:"Choose the option whose numbers are already ordered from smallest to largest."
+},
+
+workingMemory:{
+  title:"Working Memory",
+  skill:"Memory",
+  text:"Remember the digits, then answer a question about specific positions instead of repeating the whole sequence."
+},
+
+wordRecall:{
+  title:"Word Recall",
+  skill:"Memory",
+  text:"A short list of words will appear. Afterward, pick the one word that was NOT in the list."
+},
+
+changeSpot:{
+  title:"Change Spot",
+  skill:"Attention",
+  text:"A grid of colored tiles will appear, then reappear with exactly one tile changed. Find it."
+},
+
+analogy:{
+  title:"Analogy",
+  skill:"Logic",
+  text:"Work out the relationship between the first pair of words, then apply it to find the missing word."
+},
+
+percentEstimate:{
+  title:"Percent Estimate",
+  skill:"Math",
+  text:"Calculate the percentage of the given number and choose the correct answer."
+},
+
+reactionTap:{
+  title:"Reaction Tap",
+  skill:"Speed",
+  text:"Wait for the box to turn green, then click it as fast as you can. Clicking early fails the round."
+}
+
+};
+
+return info[game];
+
+}
+
+
+function showIntro(game){
+
+active=false;
+
+const info=gameInfo(game);
+
+document.getElementById("gameTitle").innerText=
+"Round "+round;
+
+document.getElementById("gameType").innerText=
+info.skill+" • "+DIFF_LABEL[currentDifficulty];
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="intro-overlay">
+
+<div>
+
+<div class="round-label">
+ROUND ${round} • ${info.skill.toUpperCase()} • <span style="color:${DIFF_COLOR[currentDifficulty]}">${DIFF_LABEL[currentDifficulty]}</span>
+</div>
+
+<div class="intro-title">
+${info.title}
+</div>
+
+<div class="intro-text">
+${info.text}
+</div>
+
+<div class="press">
+PRESS ENTER TO BEGIN
+</div>
+
+<br>
+
+<button class="secondary" onclick="beginCurrentRound()">
+START ROUND
+</button>
+
+</div>
+
+</div>
+`;
+
+introListener=(e)=>{
+
+if(e.key==="Enter"){
+  e.preventDefault();
+  beginCurrentRound();
+}
+
+};
+
+document.addEventListener("keydown",introListener);
+
+}
+
+
+function beginCurrentRound(){
+
+if(introListener){
+  document.removeEventListener("keydown",introListener);
+  introListener=null;
+}
+
+launchGame(currentGame);
+
+}
+
+
+function launchGame(game){
+
+if(game==="sequenceMemory") startSequenceMemory();
+if(game==="stroop") startStroop();
+if(game==="missingNumber") startMissingNumber();
+if(game==="visualMemory") startVisualMemory();
+if(game==="logic") startLogic();
+if(game==="mentalMath") startMentalMath();
+if(game==="reverseMemory") startReverseMemory();
+if(game==="attention") startAttention();
+if(game==="oddPattern") startOddPattern();
+if(game==="processingSpeed") startProcessingSpeed();
+if(game==="alternatingPattern") startAlternatingPattern();
+if(game==="numberRule") startNumberRule();
+if(game==="symbolMath") startSymbolMath();
+if(game==="quickSort") startQuickSort();
+if(game==="workingMemory") startWorkingMemory();
+if(game==="wordRecall") startWordRecall();
+if(game==="changeSpot") startChangeSpot();
+if(game==="analogy") startAnalogy();
+if(game==="percentEstimate") startPercentEstimate();
+if(game==="reactionTap") startReactionTap();
+
+}
+
+
+function winRound(points,skill,message){
+
+if(!active) return;
+
+stopRoundTimer();
+active=false;
+
+totalScore+=points;
+streak++;
+bestStreak=Math.max(bestStreak,streak);
+
+skillScores[skill].earned+=points;
+skillScores[skill].max+=scalePoints(150);
+
+updateTop();
+
+showFeedback(true,message,"+"+points+" points");
+
+}
+
+
+function failRound(skill,message){
+
+if(!active) return;
+
+stopRoundTimer();
+active=false;
+streak=0;
+
+skillScores[skill].max+=scalePoints(150);
+
+updateTop();
+
+showFeedback(false,message,"No points");
+
+}
+
+
+function showFeedback(success,title,sub){
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="feedback show">
+
+<div>
+
+<div class="big">
+${success ? "✓" : "✕"}
+</div>
+
+<h2 style="color:${success ? "#39df88" : "#ff6075"}">
+${title}
+</h2>
+
+<p class="muted">
+${sub}
+</p>
+
+</div>
+
+</div>
+`;
+
+setTimeout(nextRound,1400);
+
+}
+
+
+/* =========================
+SEQUENCE MEMORY
+========================= */
+
+function startSequenceMemory(){
+
+document.getElementById("gameTitle").innerText="Sequence Memory";
+
+const cfg={
+  easy:{len:4,show:2600,timer:16},
+  medium:{len:6,show:2200,timer:12},
+  hard:{len:8,show:1900,timer:9}
+}[currentDifficulty];
+
+memorySequence=[];
+
+for(let i=0;i<cfg.len;i++){
+  memorySequence.push(Math.floor(Math.random()*10));
+}
+
+active=false;
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center">
+
+<div class="sequence">
+${memorySequence.join(" ")}
+</div>
+
+<p class="muted">
+Remember the sequence.
+</p>
+
+</div>
+`;
+
+setTimeout(()=>{
+
+active=true;
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center">
+
+<h2>Type the sequence</h2>
+
+<input
+id="memoryInput"
+class="input-box"
+placeholder="Enter digits"
+autocomplete="off">
+
+</div>
+`;
+
+const input=document.getElementById("memoryInput");
+
+input.focus();
+startRoundTimer(cfg.timer,"memory");
+
+input.onkeydown=(e)=>{
+
+if(e.key==="Enter"){
+
+const answer=normalizeDigits(input.value);
+
+const correct=memorySequence.join("");
+
+if(answer===correct){
+  winRound(scalePoints(130),"memory","Perfect memory");
+}else{
+  failRound("memory","Correct sequence: "+correct);
+}
+
+}
+
+};
+
+},cfg.show);
+
+}
+
+
+/* =========================
+STROOP
+========================= */
+
+function startStroop(){
+
+document.getElementById("gameTitle").innerText="Stroop Challenge";
+
+const cfg={easy:{timer:12},medium:{timer:9},hard:{timer:6}}[currentDifficulty];
+
+const colors=[
+{name:"RED",value:"#ff6075"},
+{name:"BLUE",value:"#568cff"},
+{name:"GREEN",value:"#39df88"},
+{name:"YELLOW",value:"#ffd54a"}
+];
+
+const word=
+colors[Math.floor(Math.random()*colors.length)];
+
+let ink=
+colors[Math.floor(Math.random()*colors.length)];
+
+while(ink.name===word.name){
+  ink=colors[Math.floor(Math.random()*colors.length)];
+}
+
+correctAnswer=ink.name;
+
+active=true;
+startRoundTimer(cfg.timer,"attention");
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<div
+class="stroop-word"
+style="color:${ink.value}">
+${word.name}
+</div>
+
+<p class="muted">
+Choose the INK COLOR.
+</p>
+
+<div class="answer-grid" style="margin:auto">
+
+${shuffle(colors.map(c=>c.name)).map(name=>`
+<div class="answer" onclick="stroopAnswer('${name}')">
+${name}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function stroopAnswer(value){
+
+if(!active) return;
+
+if(value===correctAnswer){
+  winRound(scalePoints(120),"attention","Correct focus");
+}else{
+  failRound("attention","Ink color was "+correctAnswer);
+}
+
+}
+
+
+/* =========================
+MISSING NUMBER
+========================= */
+
+function startMissingNumber(){
+
+document.getElementById("gameTitle").innerText="Pattern Logic";
+
+active=true;
+
+const cfg={
+  easy:{timer:20,stepMax:3},
+  medium:{timer:16,stepMax:4},
+  hard:{timer:12,stepMax:6}
+}[currentDifficulty];
+
+const type=Math.floor(Math.random()*3);
+
+let seq=[];
+let next;
+
+if(type===0){
+
+let start=Math.floor(Math.random()*4)+2;
+let step=Math.floor(Math.random()*cfg.stepMax)+2;
+
+seq=[
+start,
+start+step,
+start+step*2,
+start+step*3
+];
+
+next=start+step*4;
+
+}else if(type===1){
+
+let start=Math.floor(Math.random()*3)+2;
+
+seq=[
+start,
+start*2,
+start*4,
+start*8
+];
+
+next=start*16;
+
+}else{
+
+let start=Math.floor(Math.random()*4)+1;
+
+seq=[
+start,
+start+2,
+start+6,
+start+12
+];
+
+next=start+20;
+
+}
+
+correctAnswer=next;
+startRoundTimer(cfg.timer,"logic");
+
+let answers=[
+next,
+next+2,
+next-2,
+next+4
+];
+
+answers=shuffle([...new Set(answers)]);
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<div class="sequence">
+${seq.join("   ")}   ?
+</div>
+
+<br><br>
+
+<div class="answer-grid" style="margin:auto">
+
+${answers.map(x=>`
+<div class="answer" onclick="missingAnswer(${x})">
+${x}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function missingAnswer(value){
+
+if(value===correctAnswer){
+  winRound(scalePoints(125),"logic","Pattern solved");
+}else{
+  failRound("logic","Answer was "+correctAnswer);
+}
+
+}
+
+
+/* =========================
+VISUAL MEMORY
+========================= */
+
+function startVisualMemory(){
+
+document.getElementById("gameTitle").innerText="Visual Memory";
+
+const cfg={
+  easy:{targets:4,show:2200,timer:16},
+  medium:{targets:5,show:1800,timer:14},
+  hard:{targets:7,show:1500,timer:11}
+}[currentDifficulty];
+
+visualTargets=[];
+selectedCells=[];
+active=false;
+
+while(visualTargets.length<cfg.targets){
+
+let n=Math.floor(Math.random()*16);
+
+if(!visualTargets.includes(n)){
+  visualTargets.push(n);
+}
+
+}
+
+let html=`<div class="memory-grid">`;
+
+for(let i=0;i<16;i++){
+
+html+=`
+<div
+class="memory-cell ${visualTargets.includes(i) ? "active":""}"
+id="vm${i}">
+</div>
+`;
+
+}
+
+html+="</div>";
+
+document.getElementById("gameArea").innerHTML=html;
+
+setTimeout(()=>{
+
+active=true;
+
+let html2=`<div class="memory-grid">`;
+
+for(let i=0;i<16;i++){
+
+html2+=`
+<div
+class="memory-cell"
+id="vm${i}"
+onclick="selectVisual(${i})">
+</div>
+`;
+
+}
+
+html2+="</div>";
+
+document.getElementById("gameArea").innerHTML=html2;
+startRoundTimer(cfg.timer,"memory");
+
+},cfg.show);
+
+}
+
+
+function selectVisual(i){
+
+if(!active) return;
+
+if(selectedCells.includes(i)) return;
+
+selectedCells.push(i);
+
+document.getElementById("vm"+i).classList.add("selected");
+
+if(selectedCells.length===visualTargets.length){
+
+const correct=
+selectedCells.every(x=>visualTargets.includes(x));
+
+if(correct){
+  winRound(scalePoints(150),"memory","Visual memory complete");
+}else{
+  failRound("memory","Some positions were incorrect");
+}
+
+}
+
+}
+
+
+/* =========================
+LOGIC
+========================= */
+
+function startLogic(){
+
+document.getElementById("gameTitle").innerText="Logic Comparison";
+
+active=true;
+
+const cfg={
+  easy:{timer:18,chain:2},
+  medium:{timer:14,chain:2},
+  hard:{timer:11,chain:3}
+}[currentDifficulty];
+
+startRoundTimer(cfg.timer,"logic");
+
+const letters=["A","B","C","D"].slice(0,cfg.chain+1);
+
+const valid=Math.random()>.5;
+
+let finalText;
+const first=letters[0];
+const last=letters[letters.length-1];
+
+if(valid){
+  finalText=`${first} is greater than ${last}.`;
+  correctAnswer="TRUE";
+}else{
+  finalText=`${last} is greater than ${first}.`;
+  correctAnswer="FALSE";
+}
+
+const lines=[];
+for(let i=0;i<letters.length-1;i++){
+  lines.push(`${letters[i]} > ${letters[i+1]}`);
+}
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center">
+
+<div class="logic-box">
+
+${lines.map(l=>`<div class="logic-line">${l}</div>`).join("")}
+
+<hr style="border-color:#2a3858">
+
+<h2>
+${finalText}
+</h2>
+
+<br>
+
+<div class="row" style="justify-content:center">
+
+<button class="primary" onclick="logicAnswer('TRUE')">
+TRUE
+</button>
+
+<button class="danger" onclick="logicAnswer('FALSE')">
+FALSE
+</button>
+
+</div>
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function logicAnswer(value){
+
+if(value===correctAnswer){
+  winRound(scalePoints(120),"logic","Logical deduction correct");
+}else{
+  failRound("logic","Incorrect deduction");
+}
+
+}
+
+
+/* =========================
+MENTAL MATH
+========================= */
+
+function startMentalMath(){
+
+document.getElementById("gameTitle").innerText="Mental Math";
+
+active=true;
+
+const cfg={
+  easy:{timer:20,aMax:12,bMax:8,cMax:5},
+  medium:{timer:15,aMax:20,bMax:12,cMax:8},
+  hard:{timer:11,aMax:32,bMax:16,cMax:12}
+}[currentDifficulty];
+
+startRoundTimer(cfg.timer,"math");
+
+let a=Math.floor(Math.random()*cfg.aMax)+5;
+let b=Math.floor(Math.random()*cfg.bMax)+2;
+let c=Math.floor(Math.random()*cfg.cMax)+2;
+
+correctAnswer=(a*b)-c;
+
+let answers=[
+correctAnswer,
+correctAnswer+4,
+correctAnswer-3,
+correctAnswer+7
+];
+
+answers=shuffle([...new Set(answers)]);
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<div class="big">
+${a} × ${b} − ${c}
+</div>
+
+<br>
+
+<div class="answer-grid" style="margin:auto">
+
+${answers.map(x=>`
+<div class="answer" onclick="mathAnswer(${x})">
+${x}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function mathAnswer(value){
+
+if(value===correctAnswer){
+  winRound(scalePoints(125),"math","Correct calculation");
+}else{
+  failRound("math","Answer was "+correctAnswer);
+}
+
+}
+
+
+/* =========================
+REVERSE MEMORY
+========================= */
+
+function startReverseMemory(){
+
+document.getElementById("gameTitle").innerText="Reverse Memory";
+
+const cfg={
+  easy:{len:5,show:2400,timer:16},
+  medium:{len:6,show:2000,timer:13},
+  hard:{len:8,show:1700,timer:10}
+}[currentDifficulty];
+
+let arr=[];
+
+for(let i=0;i<cfg.len;i++){
+  arr.push(Math.floor(Math.random()*10));
+}
+
+reverseValue=
+arr.slice().reverse().join("");
+
+active=false;
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center">
+
+<div class="reverse-display">
+${arr.join(" ")}
+</div>
+
+<p class="muted">
+Remember it. You will type it backwards.
+</p>
+
+</div>
+`;
+
+setTimeout(()=>{
+
+active=true;
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center">
+
+<h2>Type it backwards</h2>
+
+<input
+id="reverseInput"
+class="input-box"
+placeholder="Reverse sequence"
+autocomplete="off">
+
+</div>
+`;
+
+const input=document.getElementById("reverseInput");
+
+input.focus();
+startRoundTimer(cfg.timer,"memory");
+
+input.onkeydown=(e)=>{
+
+if(e.key==="Enter"){
+
+const value=normalizeDigits(input.value);
+
+if(value===reverseValue){
+  winRound(scalePoints(145),"memory","Reverse memory correct");
+}else{
+  failRound("memory","Correct answer: "+reverseValue);
+}
+
+}
+
+};
+
+},cfg.show);
+
+}
+
+
+/* =========================
+SELECTIVE ATTENTION
+========================= */
+
+function startAttention(){
+
+document.getElementById("gameTitle").innerText="Selective Attention";
+
+active=true;
+
+const cfg={
+  easy:{grid:24,timer:22},
+  medium:{grid:36,timer:18},
+  hard:{grid:48,timer:14}
+}[currentDifficulty];
+
+const symbols=["▲","●","■","◆"];
+
+const target=
+symbols[Math.floor(Math.random()*symbols.length)];
+
+let items=[];
+let count=0;
+
+for(let i=0;i<cfg.grid;i++){
+
+const s=symbols[Math.floor(Math.random()*symbols.length)];
+
+items.push(s);
+
+if(s===target) count++;
+
+}
+
+correctAnswer=count;
+startRoundTimer(cfg.timer,"attention");
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<h2>
+Count only:
+<span style="color:var(--yellow)">
+${target}
+</span>
+</h2>
+
+<div class="attention-grid" style="margin:20px auto;grid-template-columns:repeat(6,48px)">
+
+${items.map(x=>`
+<div class="attention-cell">
+${x}
+</div>
+`).join("")}
+
+</div>
+
+<div class="answer-grid" style="margin:auto">
+
+${shuffle([
+count,
+Math.max(0,count-1),
+count+1,
+count+2
+]).map(x=>`
+<div class="answer" onclick="attentionAnswer(${x})">
+${x}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function attentionAnswer(value){
+
+if(value===correctAnswer){
+  winRound(scalePoints(135),"attention","Excellent attention");
+}else{
+  failRound("attention","Correct count: "+correctAnswer);
+}
+
+}
+
+
+/* =========================
+ODD PATTERN
+========================= */
+
+function startOddPattern(){
+
+document.getElementById("gameTitle").innerText="Odd Pattern";
+
+active=true;
+
+const cfg={easy:{timer:18},medium:{timer:13},hard:{timer:9}}[currentDifficulty];
+
+startRoundTimer(cfg.timer,"logic");
+
+const sets=[
+  {level:"easy",items:["2","4","6","9"]},
+  {level:"easy",items:["▲","▲","▲","■"]},
+  {level:"easy",items:["11","22","33","35"]},
+  {level:"medium",items:["AB","BC","CD","CF"]},
+  {level:"medium",items:["3","6","9","10"]},
+  {level:"hard",items:["3","9","27","40"]},
+  {level:"hard",items:["5,10","10,20","20,40","40,90"]}
+];
+
+const pool=sets.filter(s=>
+  currentDifficulty==="easy" ? s.level==="easy" :
+  currentDifficulty==="medium" ? s.level!=="hard" :
+  true
+);
+
+const chosen=pool[Math.floor(Math.random()*pool.length)];
+const baseSet=chosen.items;
+
+/* the last item in every set above is the odd one out by design */
+const tagged=baseSet.map((value,i)=>({value,odd:i===baseSet.length-1}));
+const order=shuffle(tagged);
+
+correctAnswer=order.findIndex(o=>o.odd);
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<h2>Which one does not belong?</h2>
+
+<div class="answer-grid" style="margin:auto">
+
+${order.map((o,i)=>`
+<div class="answer" onclick="oddAnswer(${i})">
+${o.value}
+</div>
+`).join("")}
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function oddAnswer(index){
+
+if(index===correctAnswer){
+  winRound(scalePoints(120),"logic","Odd pattern found");
+}else{
+  failRound("logic","Wrong choice");
+}
+
+}
+
+
+/* =========================
+PROCESSING SPEED
+========================= */
+
+function startProcessingSpeed(){
+
+document.getElementById("gameTitle").innerText="Processing Speed";
+
+active=true;
+
+const cfg={
+  easy:{timer:9,min:10,max:60,close:false},
+  medium:{timer:7,min:10,max:99,close:false},
+  hard:{timer:5,min:10,max:99,close:true}
+}[currentDifficulty];
+
+const a=Math.floor(Math.random()*(cfg.max-cfg.min))+cfg.min;
+let b;
+
+if(cfg.close){
+  b=a+(Math.random()>0.5?1:-1)*(Math.floor(Math.random()*3)+1);
+}else{
+  b=Math.floor(Math.random()*(cfg.max-cfg.min))+cfg.min;
+}
+
+while(b===a || b<cfg.min){
+  b=Math.floor(Math.random()*(cfg.max-cfg.min))+cfg.min;
+}
+
+correctAnswer=
+a>b ? "LEFT":"RIGHT";
+
+timerStart=performance.now();
+startRoundTimer(cfg.timer,"speed");
+
+document.getElementById("gameArea").innerHTML=`
+
+<div class="center" style="width:100%">
+
+<h2>Which number is larger?</h2>
+
+<div class="number-grid" style="margin:auto">
+
+<div class="answer" onclick="speedAnswer('LEFT')">
+${a}
+</div>
+
+<div class="answer" onclick="speedAnswer('RIGHT')">
+${b}
+</div>
+
+</div>
+
+</div>
+`;
+
+}
+
+
+function speedAnswer(value){
+
+if(!active) return;
+
+const ms=
+performance.now()-timerStart;
+
+if(value===correctAnswer){
+
+let points=
+ms<800 ? 150 :
+ms<1300 ? 130 :
+ms<2000 ? 110 :
+90;
+
+winRound(scalePoints(points),"speed",Math.round(ms)+" ms");
+
+}else{
+
+failRound("speed","Incorrect comparison");
+
+}
+
+}
+
+
+
+/* =========================
+ROUND TIMER
+========================= */
+
+function startRoundTimer(seconds,skill){
+
+  stopRoundTimer(false);
+
+  timerSkill=skill;
+  roundTimerDuration=seconds*1000;
+  roundTimerEnd=performance.now()+roundTimerDuration;
+
+  const wrap=document.getElementById("timerWrap");
+  wrap.classList.add("show");
+  wrap.classList.remove("danger");
+
+  function tick(){
+    const left=Math.max(0,roundTimerEnd-performance.now());
+    const sec=Math.ceil(left/1000);
+    const pct=(left/roundTimerDuration)*100;
+
+    document.getElementById("timerText").innerText=sec+"s";
+    document.getElementById("timerFill").style.width=pct+"%";
+
+    if(left<=5000) wrap.classList.add("danger");
+
+    if(left<=0){
+      stopRoundTimer();
+      if(active) failRound(skill,"Time's up");
+    }
+  }
+
+  tick();
+  roundTimer=setInterval(tick,100);
+}
+
+function stopRoundTimer(hide=true){
+  if(roundTimer){
+    clearInterval(roundTimer);
+    roundTimer=null;
+  }
+  const wrap=document.getElementById("timerWrap");
+  if(wrap && hide){
+    wrap.classList.remove("show","danger");
+  }
+}
+
+function normalizeDigits(value){
+  return String(value)
+    .trim()
+    .replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d))
+    .replace(/[۰-۹]/g,d=>"۰۱۲۳۴۵۶۷۸۹".indexOf(d))
+    .replace(/[^\d]/g,"");
+}
+
+
+/* =========================
+ALTERNATING PATTERN
+========================= */
+
+function startAlternatingPattern(){
+  document.getElementById("gameTitle").innerText="Alternating Pattern";
+  active=true;
+
+  const cfg={easy:{timer:22},medium:{timer:18},hard:{timer:13}}[currentDifficulty];
+
+  const a=Math.floor(Math.random()*4)+2;
+  const b=Math.floor(Math.random()*4)+10;
+  const seq=[a,b,a+3,b+4,a+6,b+8,a+9];
+  correctAnswer=b+12;
+
+  const answers=shuffle([
+    correctAnswer,
+    correctAnswer+4,
+    correctAnswer-3,
+    correctAnswer+6
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <p class="muted">Two sequences are mixed together.</p>
+    <div class="sequence">${seq.join("  ")}  ?</div>
+    <br><br>
+    <div class="answer-grid" style="margin:auto">
+      ${answers.map(x=>`<div class="answer" onclick="alternatingAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(cfg.timer,"logic");
+}
+
+function alternatingAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(145),"logic","Interwoven pattern solved");
+  else failRound("logic","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+NUMBER RULE
+========================= */
+
+function startNumberRule(){
+  document.getElementById("gameTitle").innerText="Number Rule";
+  active=true;
+
+  const cfg={
+    easy:{timer:24,aMax:4,bMax:3},
+    medium:{timer:20,aMax:5,bMax:5},
+    hard:{timer:15,aMax:7,bMax:6}
+  }[currentDifficulty];
+
+  const a=Math.floor(Math.random()*cfg.aMax)+3;
+  const b=Math.floor(Math.random()*cfg.bMax)+2;
+  correctAnswer=a*b+a;
+
+  const answers=shuffle([
+    correctAnswer,
+    a*b,
+    correctAnswer+b,
+    correctAnswer-a
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="logic-box" style="margin:auto">
+      <div class="logic-line">2 , 3 → 8</div>
+      <div class="logic-line">4 , 2 → 12</div>
+      <div class="logic-line">${a} , ${b} → ?</div>
+    </div>
+    <p class="muted">Same rule every time.</p>
+    <div class="answer-grid" style="margin:20px auto 0">
+      ${answers.map(x=>`<div class="answer" onclick="numberRuleAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(cfg.timer,"logic");
+}
+
+function numberRuleAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(150),"logic","Hidden rule discovered");
+  else failRound("logic","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+SYMBOL MATH
+========================= */
+
+function startSymbolMath(){
+  document.getElementById("gameTitle").innerText="Symbol Math";
+  active=true;
+
+  const cfg={
+    easy:{timer:22,starMax:4,circleMax:3},
+    medium:{timer:18,starMax:5,circleMax:4},
+    hard:{timer:13,starMax:8,circleMax:6}
+  }[currentDifficulty];
+
+  const star=Math.floor(Math.random()*cfg.starMax)+3;
+  const circle=Math.floor(Math.random()*cfg.circleMax)+2;
+  correctAnswer=star*2+circle;
+
+  const answers=shuffle([
+    correctAnswer,
+    correctAnswer+2,
+    correctAnswer-1,
+    correctAnswer+circle
+  ]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="logic-box" style="margin:auto">
+      <div class="logic-line">★ + ★ = ${star*2}</div>
+      <div class="logic-line">● + ● + ● = ${circle*3}</div>
+      <hr style="border-color:#2a3858">
+      <div class="logic-line">★ × 2 + ● = ?</div>
+    </div>
+    <br>
+    <div class="answer-grid" style="margin:auto">
+      ${answers.map(x=>`<div class="answer" onclick="symbolMathAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(cfg.timer,"math");
+}
+
+function symbolMathAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(145),"math","Symbol values solved");
+  else failRound("math","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+QUICK ORDER
+========================= */
+
+function startQuickSort(){
+  document.getElementById("gameTitle").innerText="Quick Order";
+  active=true;
+
+  const cfg={
+    easy:{timer:14,min:10,max:60},
+    medium:{timer:10,min:10,max:89},
+    hard:{timer:7,min:10,max:999}
+  }[currentDifficulty];
+
+  let base=[];
+  while(base.length<4){
+    const n=Math.floor(Math.random()*(cfg.max-cfg.min))+cfg.min;
+    if(!base.includes(n)) base.push(n);
+  }
+
+  const correct=[...base].sort((a,b)=>a-b);
+  const options=[correct];
+
+  while(options.length<4){
+    const candidate=shuffle([...base]);
+    if(!options.some(o=>o.join(",")===candidate.join(","))){
+      options.push(candidate);
+    }
+  }
+
+  shuffle(options);
+  correctAnswer=correct.join(",");
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <h2>Which row is smallest → largest?</h2>
+    <div class="answer-grid" style="margin:auto">
+      ${options.map(o=>`<div class="answer" onclick="quickSortAnswer('${o.join(",")}')">${o.join("  ")}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(cfg.timer,"speed");
+}
+
+function quickSortAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(140),"speed","Fast ordering");
+  else failRound("speed","Wrong order");
+}
+
+
+/* =========================
+WORKING MEMORY
+========================= */
+
+function startWorkingMemory(){
+  document.getElementById("gameTitle").innerText="Working Memory";
+
+  const cfg={
+    easy:{len:6,show:3000,timer:18},
+    medium:{len:7,show:2600,timer:14},
+    hard:{len:9,show:2200,timer:10}
+  }[currentDifficulty];
+
+  const arr=[];
+  for(let i=0;i<cfg.len;i++) arr.push(Math.floor(Math.random()*10));
+
+  const half=Math.ceil(cfg.len/2);
+  const p1=Math.floor(Math.random()*half)+1;
+  let p2=Math.floor(Math.random()*(cfg.len-half))+half+1;
+  p2=Math.min(p2,cfg.len);
+
+  correctAnswer=arr[p1-1]+arr[p2-1];
+
+  active=false;
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center">
+    <div class="sequence">${arr.join(" ")}</div>
+    <p class="muted">Remember all ${cfg.len} digits.</p>
+  </div>`;
+
+  setTimeout(()=>{
+    active=true;
+
+    const answers=shuffle([
+      correctAnswer,
+      correctAnswer+1,
+      Math.max(0,correctAnswer-2),
+      correctAnswer+3
+    ]);
+
+    document.getElementById("gameArea").innerHTML=`
+    <div class="center" style="width:100%">
+      <h2>Add digit #${p1} and digit #${p2}</h2>
+      <p class="muted">Positions count from the left.</p>
+      <div class="answer-grid" style="margin:20px auto">
+        ${answers.map(x=>`<div class="answer" onclick="workingMemoryAnswer(${x})">${x}</div>`).join("")}
+      </div>
+    </div>`;
+
+    startRoundTimer(cfg.timer,"memory");
+  },cfg.show);
+}
+
+function workingMemoryAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(150),"memory","Working memory complete");
+  else failRound("memory","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+WORD RECALL
+========================= */
+
+function startWordRecall(){
+  document.getElementById("gameTitle").innerText="Word Recall";
+
+  const cfg={
+    easy:{count:3,show:3200,timer:14},
+    medium:{count:4,show:2800,timer:11},
+    hard:{count:6,show:2400,timer:9}
+  }[currentDifficulty];
+
+  const pool=shuffle([...WORD_BANK]);
+  wordListShown=pool.slice(0,cfg.count);
+  const decoy=pool[cfg.count];
+
+  active=false;
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center">
+    <div class="sequence" style="font-size:32px;letter-spacing:1px">${wordListShown.join(" · ")}</div>
+    <p class="muted">Remember these words.</p>
+  </div>`;
+
+  setTimeout(()=>{
+    active=true;
+
+    correctAnswer=decoy;
+    const options=shuffle([decoy,...shuffle([...wordListShown]).slice(0,3)]);
+
+    document.getElementById("gameArea").innerHTML=`
+    <div class="center" style="width:100%">
+      <h2>Which word was NOT shown?</h2>
+      <div class="answer-grid" style="margin:20px auto">
+        ${options.map(w=>`<div class="answer" onclick="wordRecallAnswer('${w}')">${w}</div>`).join("")}
+      </div>
+    </div>`;
+
+    startRoundTimer(cfg.timer,"memory");
+  },cfg.show);
+}
+
+function wordRecallAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(140),"memory","Sharp recall");
+  else failRound("memory","The extra word was "+correctAnswer);
+}
+
+
+/* =========================
+CHANGE SPOT
+========================= */
+
+function startChangeSpot(){
+  document.getElementById("gameTitle").innerText="Change Spot";
+  active=false;
+
+  const cfg={
+    easy:{cells:9,cols:3,show:2400,timer:16},
+    medium:{cells:16,cols:4,show:2000,timer:12},
+    hard:{cells:25,cols:5,show:1600,timer:9}
+  }[currentDifficulty];
+
+  const colors=["#568cff","#39df88","#ffd54a","#ff6075","#a98cff","#27d7ff"];
+
+  const initial=[];
+  for(let i=0;i<cfg.cells;i++){
+    initial.push(colors[Math.floor(Math.random()*colors.length)]);
+  }
+
+  const changeIndex=Math.floor(Math.random()*cfg.cells);
+  let newColor=colors[Math.floor(Math.random()*colors.length)];
+  while(newColor===initial[changeIndex]){
+    newColor=colors[Math.floor(Math.random()*colors.length)];
+  }
+
+  correctAnswer=changeIndex;
+
+  const renderGrid=(arr,clickable)=>`
+    <div class="memory-grid" style="grid-template-columns:repeat(${cfg.cols},56px)">
+      ${arr.map((c,i)=>`<div class="memory-cell" style="width:56px;height:56px;background:${c}" ${clickable?`onclick="changeSpotAnswer(${i})"`:""}></div>`).join("")}
+    </div>`;
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center">
+    ${renderGrid(initial,false)}
+    <p class="muted">Watch closely — one tile is about to change.</p>
+  </div>`;
+
+  setTimeout(()=>{
+    active=true;
+
+    const after=[...initial];
+    after[changeIndex]=newColor;
+
+    document.getElementById("gameArea").innerHTML=`
+    <div class="center">
+      <h2>Which tile changed?</h2>
+      ${renderGrid(after,true)}
+    </div>`;
+
+    startRoundTimer(cfg.timer,"attention");
+  },cfg.show);
+}
+
+function changeSpotAnswer(i){
+  if(!active) return;
+  if(i===correctAnswer){
+    winRound(scalePoints(140),"attention","Sharp eyes");
+  }else{
+    failRound("attention","The changed tile was elsewhere");
+  }
+}
+
+
+/* =========================
+ANALOGY
+========================= */
+
+function startAnalogy(){
+  document.getElementById("gameTitle").innerText="Analogy";
+  active=true;
+
+  const cfg={easy:{timer:20},medium:{timer:15},hard:{timer:11}}[currentDifficulty];
+  startRoundTimer(cfg.timer,"logic");
+
+  const item=ANALOGIES[Math.floor(Math.random()*ANALOGIES.length)];
+  correctAnswer=item.answer;
+
+  const options=shuffle([...item.options]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="logic-box" style="margin:auto">
+      <div class="logic-line">${item.a} → ${item.b}</div>
+      <div class="logic-line">${item.c} → ?</div>
+    </div>
+    <div class="answer-grid" style="margin:20px auto">
+      ${options.map(o=>`<div class="answer" onclick="analogyAnswer('${o}')">${o}</div>`).join("")}
+    </div>
+  </div>`;
+}
+
+function analogyAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(130),"logic","Relationship identified");
+  else failRound("logic","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+PERCENT ESTIMATE
+========================= */
+
+function startPercentEstimate(){
+  document.getElementById("gameTitle").innerText="Percent Estimate";
+  active=true;
+
+  const cfg={
+    easy:{timer:18,percents:[10,25,50],baseMax:100},
+    medium:{timer:14,percents:[15,20,30,40,75],baseMax:200},
+    hard:{timer:10,percents:[12,18,35,65,85],baseMax:400}
+  }[currentDifficulty];
+
+  const percent=cfg.percents[Math.floor(Math.random()*cfg.percents.length)];
+  let base=Math.floor(Math.random()*(cfg.baseMax/10))*10+20;
+  correctAnswer=Math.round(base*percent/100);
+
+  const step=Math.max(2,Math.round(correctAnswer*0.1));
+  const answers=shuffle([...new Set([
+    correctAnswer,
+    correctAnswer+step,
+    Math.max(0,correctAnswer-step),
+    correctAnswer+step*2
+  ])]);
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div class="big" style="font-size:40px">${percent}% of ${base}</div>
+    <br>
+    <div class="answer-grid" style="margin:auto">
+      ${answers.map(x=>`<div class="answer" onclick="percentAnswer(${x})">${x}</div>`).join("")}
+    </div>
+  </div>`;
+
+  startRoundTimer(cfg.timer,"math");
+}
+
+function percentAnswer(v){
+  if(v===correctAnswer) winRound(scalePoints(135),"math","Accurate estimate");
+  else failRound("math","Answer was "+correctAnswer);
+}
+
+
+/* =========================
+REACTION TAP
+========================= */
+
+function startReactionTap(){
+  document.getElementById("gameTitle").innerText="Reaction Tap";
+  active=false;
+
+  const cfg={
+    easy:{minDelay:1200,maxDelay:2200,timer:6},
+    medium:{minDelay:900,maxDelay:2400,timer:5},
+    hard:{minDelay:600,maxDelay:2600,timer:4}
+  }[currentDifficulty];
+
+  document.getElementById("gameArea").innerHTML=`
+  <div class="center" style="width:100%">
+    <div id="reactionBox" style="margin:auto;width:220px;height:220px;border-radius:20px;background:#3a2233;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;cursor:pointer" onclick="reactionTapClick(false)">
+      WAIT...
+    </div>
+    <p class="muted" style="margin-top:16px">Click the box the moment it turns green.</p>
+  </div>`;
+
+  const delay=Math.floor(Math.random()*(cfg.maxDelay-cfg.minDelay))+cfg.minDelay;
+
+  reactionTimeout=setTimeout(()=>{
+    reactionTimeout=null;
+    active=true;
+    timerStart=performance.now();
+
+    const box=document.getElementById("reactionBox");
+    if(box){
+      box.style.background="linear-gradient(135deg,var(--green),var(--cyan))";
+      box.innerText="TAP NOW";
+      box.setAttribute("onclick","reactionTapClick(true)");
+    }
+
+    startRoundTimer(cfg.timer,"speed");
+  },delay);
+}
+
+function reactionTapClick(isReady){
+
+  if(!isReady){
+
+    if(reactionTimeout){
+      clearTimeout(reactionTimeout);
+      reactionTimeout=null;
+    }
+
+    stopRoundTimer();
+    active=false;
+    streak=0;
+
+    skillScores.speed.max+=scalePoints(150);
+
+    updateTop();
+    showFeedback(false,"Too early","Wait for green next time");
+
+    return;
+  }
+
+  if(!active) return;
+
+  const ms=performance.now()-timerStart;
+
+  const points=
+  ms<250 ? 150 :
+  ms<400 ? 130 :
+  ms<600 ? 110 :
+  90;
+
+  winRound(scalePoints(points),"speed",Math.round(ms)+" ms");
+
+}
+
+
+/* =========================
+FINAL REPORT
+========================= */
+
+function skillPercent(skill){
+
+const s=skillScores[skill];
+
+if(!s.max) return 0;
+
+return Math.round((s.earned/s.max)*100);
+
+}
+
+
+function endSession(){
+
+cleanup();
+
+document.getElementById("gameArea").style.display="none";
+
+document.getElementById("finalScreen").classList.add("show");
+
+const memory=skillPercent("memory");
+const logic=skillPercent("logic");
+const attention=skillPercent("attention");
+const math=skillPercent("math");
+const speed=skillPercent("speed");
+
+const skills={
+  Memory:memory,
+  Logic:logic,
+  Attention:attention,
+  Math:math,
+  Speed:speed
+};
+
+const overall=Math.round(
+(memory+logic+attention+math+speed)/5
+);
+
+document.getElementById("finalScore").innerText=
+overall+"/100";
+
+document.getElementById("memoryScore").innerText=memory;
+document.getElementById("logicScore").innerText=logic;
+document.getElementById("attentionScore").innerText=attention;
+document.getElementById("mathScore").innerText=math;
+document.getElementById("speedScore").innerText=speed;
+
+document.getElementById("memoryBar").style.width=memory+"%";
+document.getElementById("logicBar").style.width=logic+"%";
+document.getElementById("attentionBar").style.width=attention+"%";
+document.getElementById("mathBar").style.width=math+"%";
+document.getElementById("speedBar").style.width=speed+"%";
+
+let grade;
+
+if(overall>=90){
+  grade="Exceptional 🧠🔥";
+}else if(overall>=80){
+  grade="Excellent";
+}else if(overall>=70){
+  grade="Very Good";
+}else if(overall>=60){
+  grade="Good";
+}else{
+  grade="Keep Training";
+}
+
+document.getElementById("finalGrade").innerText=grade;
+
+const entries=Object.entries(skills);
+
+entries.sort((a,b)=>b[1]-a[1]);
+
+const strongest=entries[0][0];
+const weakest=entries[entries.length-1][0];
+
+document.getElementById("summaryText").innerText=
+`Strongest skill: ${strongest}. Area to improve: ${weakest}.`;
+
+}
+
+
+function cleanup(){
+
+stopRoundTimer();
+
+if(introListener){
+  document.removeEventListener("keydown",introListener);
+  introListener=null;
+}
+
+if(reactionTimeout){
+  clearTimeout(reactionTimeout);
+  reactionTimeout=null;
+}
+
+active=false;
+
+}
+
+</script>
+
+</body>
+</html> 
